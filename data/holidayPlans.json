@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Férias na Praia",
+    "description": "Uma semana de descanso na praia",
+    "date": "2024-07-15",
+    "location": "Praia do Porto",
+    "participants": ["João", "Maria"]
+  },
+  {
+    "id": 2,
+    "title": "Viagem à Montanha",
+    "description": "Exploração das montanhas e trilhas",
+    "date": "2024-08-20",
+    "location": "Montanhas Serradas",
+    "participants": ["Carlos", "Ana", "Pedro"]
+  }
+]
