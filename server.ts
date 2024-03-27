@@ -17,7 +17,7 @@ app.get("/api/holiday-plans", (req: Request, res: Response) => {
       console.error(err);
       res
         .status(500)
-        .send("There was an error when reading the vacation plans.");
+        .send("Erro ao ler os planos de férias.");
       return;
     }
     res.json(JSON.parse(data));
@@ -53,7 +53,6 @@ app.post('/api/holiday-plans', (req: Request, res: Response) => {
 app.delete("/api/holiday-plans/:id", (req: Request, res: Response) => {
   const id = req.params.id;
 
-  // Ler o arquivo JSON
   fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
     if (err) {
       console.error("Erro ao ler arquivo JSON:", err);
@@ -74,11 +73,40 @@ app.delete("/api/holiday-plans/:id", (req: Request, res: Response) => {
         console.error("Erro ao escrever no arquivo JSON:", err);
         return res.status(500).send("Erro ao excluir plano de férias.");
       }
-      res.status(200).json({message : "Plano excluído com sucesso!"});
+      res.status(200).send("Plano excluído com sucesso");
     });
   });
 });
 
+app.put("/api/holiday-plans/:id", (req: Request, res: Response) => {
+  const id = req.params.id;
+  const updatedPlan = req.body;
+
+  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Erro ao ler os planos de férias.");
+    }
+
+    let holidayPlans = JSON.parse(data);
+
+    const index = holidayPlans.findIndex((plan: { id: string }) => plan.id === id);
+
+    if (index === -1) {
+      return res.status(404).send("Plano de férias não encontrado");
+    }
+
+    holidayPlans[index] = { ...holidayPlans[index], ...updatedPlan };
+
+    fs.writeFile(holidayPlansFilePath, JSON.stringify(holidayPlans, null, 2), (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Falha ao atualizar o plano de férias");
+      }
+      res.json(holidayPlans[index]);
+    });
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running at port: ${PORT}`);
