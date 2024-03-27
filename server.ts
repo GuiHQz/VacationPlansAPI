@@ -15,22 +15,41 @@ app.get("/api/holiday-plans", (req: Request, res: Response) => {
   fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
     if (err) {
       console.error(err);
-      res
-        .status(500)
-        .send("Erro ao ler os planos de férias.");
+      res.status(500).send("Erro ao ler os planos de férias.");
       return;
     }
     res.json(JSON.parse(data));
   });
 });
 
-app.post('/api/holiday-plans', (req: Request, res: Response) => {
-  const newPlan = req.body; 
+app.get("/api/holiday-plans/:id", (req: Request, res: Response) => {
+  const { id } = req.params;
 
-  fs.readFile(holidayPlansFilePath, 'utf8', (err, data) => {
+  fs.readFile(holidayPlansFilePath, "utf-8", (err, data) => {
+    if (err) {
+      console.error("Erro ao ler o arquivo JSON: ", err);
+      return res.status(500).send("Erro interno do servidor");
+    }
+
+    const holidayPlans = JSON.parse(data);
+
+    const plan = holidayPlans.find((plan: any) => plan.id === id);
+
+    if (!plan) {
+      return res.status(404).send("Plano de férias não encontrado");
+    }
+
+    res.json(plan);
+  });
+});
+
+app.post("/api/holiday-plans", (req: Request, res: Response) => {
+  const newPlan = req.body;
+
+  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
     if (err) {
       console.error(err);
-      res.status(500).send('Erro ao ler os planos de férias.');
+      res.status(500).send("Erro ao ler os planos de férias.");
       return;
     }
 
@@ -41,7 +60,7 @@ app.post('/api/holiday-plans', (req: Request, res: Response) => {
     fs.writeFile(holidayPlansFilePath, JSON.stringify(holidayPlans), (err) => {
       if (err) {
         console.error(err);
-        res.status(500).send('Erro ao salvar o novo plano de férias.');
+        res.status(500).send("Erro ao salvar o novo plano de férias.");
         return;
       }
 
@@ -90,7 +109,9 @@ app.put("/api/holiday-plans/:id", (req: Request, res: Response) => {
 
     let holidayPlans = JSON.parse(data);
 
-    const index = holidayPlans.findIndex((plan: { id: string }) => plan.id === id);
+    const index = holidayPlans.findIndex(
+      (plan: { id: string }) => plan.id === id
+    );
 
     if (index === -1) {
       return res.status(404).send("Plano de férias não encontrado");
@@ -98,13 +119,17 @@ app.put("/api/holiday-plans/:id", (req: Request, res: Response) => {
 
     holidayPlans[index] = { ...holidayPlans[index], ...updatedPlan };
 
-    fs.writeFile(holidayPlansFilePath, JSON.stringify(holidayPlans, null, 2), (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Falha ao atualizar o plano de férias");
+    fs.writeFile(
+      holidayPlansFilePath,
+      JSON.stringify(holidayPlans, null, 2),
+      (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send("Falha ao atualizar o plano de férias");
+        }
+        res.json(holidayPlans[index]);
       }
-      res.json(holidayPlans[index]);
-    });
+    );
   });
 });
 
