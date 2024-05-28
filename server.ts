@@ -1,136 +1,97 @@
-import fs from "fs";
-import path from "path";
 import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
 
 const PORT = process.env.PORT || 3000;
+const prisma = new PrismaClient();
 const app = express();
-
-const holidayPlansFilePath = path.join(__dirname, "data", "holidayPlans.json");
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/api/holiday-plans", (req: Request, res: Response) => {
-  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("Erro ao ler os planos de férias.");
-      return;
-    }
-    res.json(JSON.parse(data));
-  });
+app.get("/api/holiday-plans", async (req: Request, res: Response) => {
+  try {
+    const holidayPlans = await prisma.holidayPlan.findMany();
+    res.json(holidayPlans);
+  } catch (err) {
+    console.error("Erro ao ler os planos de férias.");
+    res.status(500).send("Internal Error");
+  }
 });
 
-app.get("/api/holiday-plans/:id", (req: Request, res: Response) => {
+app.get("/api/holiday-plans/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  fs.readFile(holidayPlansFilePath, "utf-8", (err, data) => {
-    if (err) {
-      console.error("Erro ao ler o arquivo JSON: ", err);
-      return res.status(500).send("Erro interno do servidor");
-    }
-
-    const holidayPlans = JSON.parse(data);
-
-    const plan = holidayPlans.find((plan: any) => plan.id === id);
+  try {
+    const plan = await prisma.holidayPlan.findUnique({
+      where: { id },
+    });
 
     if (!plan) {
       return res.status(404).send("Plano de férias não encontrado");
     }
 
     res.json(plan);
-  });
+  } catch (err) {
+    console.error("Erro ao buscar o plano de férias: ", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-app.post("/api/holiday-plans", (req: Request, res: Response) => {
-  const newPlan = req.body;
+app.post("/api/holiday-plans", async (req: Request, res: Response) => {
+  const { title, description, date, location, participants } = req.body;
 
-  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("Erro ao ler os planos de férias.");
-      return;
-    }
-
-    const holidayPlans = JSON.parse(data);
-
-    holidayPlans.push(newPlan);
-
-    fs.writeFile(holidayPlansFilePath, JSON.stringify(holidayPlans), (err) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send("Erro ao salvar o novo plano de férias.");
-        return;
-      }
-
-      res.status(201).json(newPlan);
+  try {
+    const newPlan = await prisma.holidayPlan.create({
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        location,
+        participants,
+      },
     });
-  });
+    res.status(201).json(newPlan);
+  } catch (err) {
+    console.error("Erro ao criar um novo plano de férias", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-app.delete("/api/holiday-plans/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
+app.delete("/api/holiday-plans/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Erro ao ler arquivo JSON:", err);
-      return res.status(500).send("Erro ao ler plano de férias.");
-    }
-
-    let holidayPlans = JSON.parse(data);
-
-    const index = holidayPlans.findIndex((plan: any) => plan.id === id);
-    if (index === -1) {
-      return res.status(404).send("Plano de férias não encontrado.");
-    }
-
-    holidayPlans.splice(index, 1);
-
-    fs.writeFile(holidayPlansFilePath, JSON.stringify(holidayPlans), (err) => {
-      if (err) {
-        console.error("Erro ao escrever no arquivo JSON:", err);
-        return res.status(500).send("Erro ao excluir plano de férias.");
-      }
-      res.status(200).send("Plano excluído com sucesso");
+  try {
+    await prisma.holidayPlan.delete({
+      where: { id },
     });
-  });
+    res.status(204).send();
+  } catch (err) {
+    console.error("Erro ao excluir o plano de férias: ", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-app.put("/api/holiday-plans/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
-  const updatedPlan = req.body;
+app.put("/api/holiday-plans/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { title, description, date, location, participants } = req.body;
 
-  fs.readFile(holidayPlansFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send("Erro ao ler os planos de férias.");
-    }
-
-    let holidayPlans = JSON.parse(data);
-
-    const index = holidayPlans.findIndex(
-      (plan: { id: string }) => plan.id === id
-    );
-
-    if (index === -1) {
-      return res.status(404).send("Plano de férias não encontrado");
-    }
-
-    holidayPlans[index] = { ...holidayPlans[index], ...updatedPlan };
-
-    fs.writeFile(
-      holidayPlansFilePath,
-      JSON.stringify(holidayPlans, null, 2),
-      (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).send("Falha ao atualizar o plano de férias");
-        }
-        res.json(holidayPlans[index]);
-      }
-    );
-  });
+  try {
+    const updatedPlan = await prisma.holidayPlan.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        location,
+        participants,
+      },
+    });
+    res.json(updatedPlan);
+  } catch (err) {
+    console.error("Erro ao atualizar o plano de férias: ", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 app.listen(PORT, () => {
