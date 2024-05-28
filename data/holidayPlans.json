@@ -1,18 +1,1 @@
-[
-  {
-    "id": 1,
-    "title": "Férias na Praia",
-    "description": "Uma semana de descanso na praia",
-    "date": "2024-07-15",
-    "location": "Praia do Porto",
-    "participants": ["João", "Maria"]
-  },
-  {
-    "id": 2,
-    "title": "Viagem à Montanha",
-    "description": "Exploração das montanhas e trilhas",
-    "date": "2024-08-20",
-    "location": "Montanhas Serradas",
-    "participants": ["Carlos", "Ana", "Pedro"]
-  }
-]
+[{"id":"9b66e38c-b7c6-480c-ba4b-5f82ff6ce2a0","title":"Ir para os States","description":"Nova viagem","date":"2026-03-20","location":"EUA","participants":["Eu","Tu"]},{"id":"11317b75-f3bd-4841-8229-89d99ea42a23","title":"Visitar Sao Paulo","description":"Ibirapuera","date":"2025-12-30","location":"Brasil","participants":["Eu","Mãe","Pai"]},{"id":"a2dc9ab7-ace5-4ae1-a3dd-9f38e2934480","title":"Visitar Europa","description":"Ir para Londres","date":"2027-01-20","location":"Londres","participants":["Eu"]}]
