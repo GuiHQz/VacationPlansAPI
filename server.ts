@@ -74,7 +74,6 @@ app.delete("/api/holiday-plans/:id", async (req: Request, res: Response) => {
       where: { id },
     });
 
-    console.log(`Plano de férias com ID ${id} excluído com sucesso.`); // Adicionando um log para registrar a exclusão bem-sucedida
     res.status(204).send();
   } catch (err) {
     console.error("Erro ao excluir o plano de férias: ", err);
